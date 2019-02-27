@@ -375,13 +375,16 @@ func (app *DdevApp) ImportDB(imPath string, extPath string, progress bool) error
 }
 
 // ExportDB exports the db, with optional output to a file, default gzip
-func (app *DdevApp) ExportDB(outFile string, gzip bool) error {
+func (app *DdevApp) ExportDB(outFile string, outDir string, gzip bool) error {
 	app.DockerEnv()
 
 	opts := &ExecOpts{
 		Service:   "db",
 		Cmd:       []string{"bash", "-c", "mysqldump db"},
 		NoCapture: true,
+	}
+	if outDir != "" && (outFile != "" || gzip) {
+		return fmt.Errorf("cannot use dir output together with single file or gzip")
 	}
 	if gzip {
 		opts.Cmd = []string{"bash", "-c", "mysqldump db | gzip"}
@@ -395,6 +398,7 @@ func (app *DdevApp) ExportDB(outFile string, gzip bool) error {
 		// nolint: errcheck
 		defer f.Close()
 	}
+	//ADD STUFF HERE
 
 	_, _, err := app.Exec(opts)
 
